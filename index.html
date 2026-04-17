@@ -151,7 +151,7 @@
 </footer>
 
 <script>
-    const NUMERO_WHATS = "+5521976475824";
+    const NUMERO_WHATS = "5521976475824";
     const SENHA_ADMIN = "721590";
     
     let produtos = JSON.parse(localStorage.getItem('meus_produtos_gigi')) || [
@@ -223,7 +223,7 @@
         if (prompt("Senha Admin:") === SENHA_ADMIN) {
             document.getElementById('admin-panel').style.display = 'block';
             listarProdutosAdmin();
-        } else alert("Senha incorreta!");
+        } else alert("Senha incorreta! Tente Novamente !");
     }
     function fecharAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
 
