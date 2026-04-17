@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCE DA GIGI - Pedidos Online</title>
+    <style>
+        :root {
+            --primary: #ff85a1; 
+            --secondary: #fce4ec;
+            --accent: #795548; 
+            --text: #444;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #fff5f8; color: var(--text); padding-bottom: 100px; }
+
+        header {
+            background-color: var(--primary);
+            color: var(--white);
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 1rem;
+            text-align: center;
+            border: 2px solid var(--secondary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            background: #eee;
+        }
+
+        .product-card h3 { color: var(--accent); margin-bottom: 5px; }
+        .product-weight { font-size: 0.85rem; color: #888; margin-bottom: 10px; }
+        .price { font-weight: bold; color: var(--primary); font-size: 1.3rem; margin-bottom: 15px; }
+
+        button.add-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #cart-section {
+            margin-top: 3rem;
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--accent); }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+
+        .checkout-btn {
+            display: block; width: 100%; background-color: #25d366; color: white;
+            text-align: center; padding: 18px; border-radius: 12px; font-weight: bold; 
+            border: none; cursor: pointer; font-size: 1.1rem;
+        }
+
+        #admin-panel {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 1000; padding: 20px; overflow-y: auto;
+        }
+
+        .btn-admin-access { background: none; border: none; color: #b58394; cursor: pointer; text-decoration: underline; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🍪 DOCE DA GIGI 🍬</h1>
+    <p>Escolha seus doces e receba em casa!</p>
+</header>
+
+<div class="container">
+    <div class="products-grid" id="products-list"></div>
+
+    <div id="cart-section">
+        <h2>🛒 Finalizar Pedido</h2>
+        <br>
+        
+        <div class="input-group">
+            <label>Seu Nome:</label>
+            <input type="text" id="cliente-nome" placeholder="Ex: Maria Silva">
+        </div>
+        <div class="input-group">
+            <label>Endereço de Entrega:</label>
+            <textarea id="cliente-endereco" rows="3" placeholder="Rua, número, bairro e ponto de referência"></textarea>
+        </div>
+
+        <div id="cart-items-display" style="margin: 20px 0;"></div>
+        
+        <div style="font-size: 1.6rem; text-align: right; margin: 15px 0; font-weight: bold;">
+            Total: R$ <span id="cart-total">0,00</span>
+        </div>
+        
+        <button class="checkout-btn" onclick="enviarPedido()">Confirmar e Enviar para DOCE DA GIGI</button>
+    </div>
+</div>
+
+<div id="admin-panel">
+    <button onclick="fecharAdmin()" style="background:#444; color:white; padding:10px; border:none; border-radius:8px; margin-bottom:20px;">← Voltar</button>
+    <h2>Painel Admin - DOCE DA GIGI</h2>
+    <div style="background: #f9f9f9; padding: 15px; border-radius: 10px; margin: 15px 0;">
+        <input type="text" id="p-nome" placeholder="Nome do Produto" style="width:100%; padding:10px; margin-bottom:10px;">
+        <input type="text" id="p-preco" placeholder="Preço (Ex: 10.00)" style="width:48%; padding:10px;">
+        <input type="text" id="p-peso" placeholder="Peso (Ex: 100g)" style="width:48%; padding:10px;">
+        <input type="text" id="p-foto" placeholder="URL da Foto" style="width:100%; padding:10px; margin-top:10px;">
+        <button onclick="salvarProduto()" style="width:100%; background:var(--primary); color:white; padding:15px; border:none; margin-top:10px; border-radius:8px; font-weight:bold;">CADASTRAR</button>
+    </div>
+    <div id="admin-list"></div>
+</div>
+
+<footer style="text-align: center; padding: 20px;">
+    <p>2026 © DOCE DA GIGI</p>
+    <button class="btn-admin-access" onclick="acessarAdmin()">Acesso Administrativo</button>
+</footer>
+
+<script>
+    const NUMERO_WHATS = "5521976475824";
+    const SENHA_ADMIN = "721590";
+    
+    let produtos = JSON.parse(localStorage.getItem('meus_produtos_gigi')) || [
+        { id: 1, nome: "Biscoito Amanteigado", preco: 15.00, peso: "250g", foto: "" }
+    ];
+
+    let carrinho = [];
+
+    function renderizarLoja() {
+        const grid = document.getElementById('products-list');
+        grid.innerHTML = produtos.map(p => `
+            <div class="product-card">
+                <img src="${p.foto}" class="product-img" onerror="this.src='https://placehold.co/400x300?text=Doce+da+Gigi'">
+                <h3>${p.nome}</h3>
+                <p class="product-weight">${p.peso}</p>
+                <span class="price">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
+                <button class="add-btn" onclick="adicionarAoCarrinho(${p.id})">Adicionar</button>
+            </div>
+        `).join('');
+    }
+
+    function adicionarAoCarrinho(id) {
+        const p = produtos.find(item => item.id === id);
+        carrinho.push(p);
+        atualizarCarrinho();
+    }
+
+    function atualizarCarrinho() {
+        const display = document.getElementById('cart-items-display');
+        const totalSpan = document.getElementById('cart-total');
+        if (carrinho.length === 0) { display.innerHTML = ""; totalSpan.innerText = "0,00"; return; }
+        
+        const contagem = {};
+        carrinho.forEach(item => contagem[item.nome] = (contagem[item.nome] || 0) + 1);
+        
+        display.innerHTML = "<strong>Seu Pedido:</strong>" + Object.keys(contagem).map(nome => {
+            const item = produtos.find(p => p.nome === nome);
+            return `<div class="cart-item"><span>${contagem[nome]}x ${nome}</span><span>R$ ${(item.preco * contagem[nome]).toFixed(2).replace('.',',')}</span></div>`;
+        }).join('');
+
+        const total = carrinho.reduce((acc, item) => acc + parseFloat(item.preco), 0);
+        totalSpan.innerText = total.toFixed(2).replace('.', ',');
+    }
+
+    function enviarPedido() {
+        const nomeCli = document.getElementById('cliente-nome').value;
+        const enderecoCli = document.getElementById('cliente-endereco').value;
+
+        if (!nomeCli || !enderecoCli) return alert("Preencha nome e endereço!");
+        if (carrinho.length === 0) return alert("Carrinho vazio!");
+
+        const agora = new Date();
+        const dataHora = agora.toLocaleDateString('pt-BR') + " às " + agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+        let msg = `*🍰 NOVO PEDIDO - DOCE DA GIGI 🍰*\n\n`;
+        msg += `👤 *Cliente:* ${nomeCli}\n📍 *Endereço:* ${enderecoCli}\n⏰ *Data:* ${dataHora}\n\n`;
+        
+        const contagem = {};
+        carrinho.forEach(item => contagem[item.nome] = (contagem[item.nome] || 0) + 1);
+        Object.keys(contagem).forEach(n => msg += `• ${contagem[n]}x ${n}\n`);
+
+        const total = carrinho.reduce((acc, item) => acc + parseFloat(item.preco), 0);
+        msg += `\n💰 *Total: R$ ${total.toFixed(2).replace('.', ',')}*`;
+
+        window.open(`https://wa.me/${NUMERO_WHATS}?text=${encodeURIComponent(msg)}`);
+    }
+
+    function acessarAdmin() {
+        if (prompt("Senha Admin:") === SENHA_ADMIN) {
+            document.getElementById('admin-panel').style.display = 'block';
+            listarProdutosAdmin();
+        } else alert("Senha incorreta!");
+    }
+    function fecharAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+
+    function salvarProduto() {
+        const nome = document.getElementById('p-nome').value;
+        const preco = document.getElementById('p-preco').value;
+        const peso = document.getElementById('p-peso').value;
+        const foto = document.getElementById('p-foto').value;
+        if(!nome || !preco) return alert("Campos obrigatórios!");
+
+        produtos.push({ id: Date.now(), nome, preco: parseFloat(preco), peso, foto });
+        localStorage.setItem('meus_produtos_gigi', JSON.stringify(produtos));
+        renderizarLoja(); listarProdutosAdmin();
+    }
+
+    function excluirProduto(id) {
+        produtos = produtos.filter(p => p.id !== id);
+        localStorage.setItem('meus_produtos_gigi', JSON.stringify(produtos));
+        renderizarLoja(); listarProdutosAdmin();
+    }
+
+    function listarProdutosAdmin() {
+        const lista = document.getElementById('admin-list');
+        lista.innerHTML = produtos.map(p => `
+            <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;">
+                <span>${p.nome}</span>
+                <button onclick="excluirProduto(${p.id})" style="color:red;">Remover</button>
+            </div>
+        `).join('');
+    }
+
+    renderizarLoja();
+</script>
+
+</body>
+</html>
